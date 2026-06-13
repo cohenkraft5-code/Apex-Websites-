@@ -12,6 +12,8 @@ import { Card } from '@/components/ui/card'
 import { Spotlight } from '@/components/ui/spotlight'
 
 gsap.registerPlugin(ScrollTrigger)
+// Don't recalc ScrollTriggers when the mobile URL bar shows/hides — prevents jumpy scrubbing.
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 const GOLD = '#D4AF37'
 const DISCORD = 'https://discord.gg/Gn2r4BGcyB'
@@ -168,54 +170,71 @@ function ApexMeshCanvas() {
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const isMobile = window.matchMedia('(max-width: 768px)').matches
 
-    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2)
+    const density = isMobile ? 26000 : 16000   // higher number = fewer dots
+    const maxCount = isMobile ? 46 : 96
+    const linkDist = isMobile ? 108 : 140
+
+    let w = 0, h = 0
     let points = []
     let raf = 0
+    let running = true
+    let lastW = -1
 
-    const COUNT = () => Math.min(96, Math.floor((w * h) / 16000))
-
-    const build = () => {
-      const rect = canvas.getBoundingClientRect()
-      w = rect.width; h = rect.height
-      canvas.width = w * dpr; canvas.height = h * dpr
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      points = Array.from({ length: COUNT() }, () => ({
+    const seed = () => {
+      const count = Math.min(maxCount, Math.floor((w * h) / density))
+      points = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.32,
-        vy: (Math.random() - 0.5) * 0.32,
-        r: Math.random() * 1.6 + 0.6,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 1.5 + 0.6,
       }))
+    }
+
+    // Re-seed ONLY when width actually changes. Mobile address-bar show/hide
+    // fires resize with a changed HEIGHT — reseeding there caused the glitch.
+    const resize = (force) => {
+      const rect = canvas.getBoundingClientRect()
+      w = rect.width; h = rect.height
+      canvas.width = Math.round(w * dpr)
+      canvas.height = Math.round(h * dpr)
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      if (force || Math.abs(w - lastW) > 1) {
+        lastW = w
+        seed()
+      } else {
+        for (const p of points) {
+          if (p.x > w) p.x = w
+          if (p.y > h) p.y = h
+        }
+      }
     }
 
     const draw = () => {
       ctx.clearRect(0, 0, w, h)
-      const max = 140
-
       for (const p of points) {
         p.x += p.vx; p.y += p.vy
         if (p.x < 0 || p.x > w) p.vx *= -1
         if (p.y < 0 || p.y > h) p.vy *= -1
-
-        // gentle attraction toward cursor
-        const dx = mouse.current.x - p.x
-        const dy = mouse.current.y - p.y
-        const d = Math.hypot(dx, dy)
-        if (d < 180 && d > 0.1) {
-          p.x += (dx / d) * 0.5
-          p.y += (dy / d) * 0.5
+        if (!isMobile) {
+          const dx = mouse.current.x - p.x
+          const dy = mouse.current.y - p.y
+          const d = Math.hypot(dx, dy)
+          if (d < 170 && d > 0.1) {
+            p.x += (dx / d) * 0.4
+            p.y += (dy / d) * 0.4
+          }
         }
       }
-
-      // connecting lines
       for (let i = 0; i < points.length; i++) {
         for (let j = i + 1; j < points.length; j++) {
           const a = points[i], b = points[j]
           const dist = Math.hypot(a.x - b.x, a.y - b.y)
-          if (dist < max) {
-            const o = (1 - dist / max) * 0.4
-            ctx.strokeStyle = `rgba(212,175,55,${o})`
+          if (dist < linkDist) {
+            ctx.strokeStyle = `rgba(212,175,55,${(1 - dist / linkDist) * 0.38})`
             ctx.lineWidth = 1
             ctx.beginPath()
             ctx.moveTo(a.x, a.y)
@@ -224,40 +243,49 @@ function ApexMeshCanvas() {
           }
         }
       }
-
-      // nodes
       for (const p of points) {
         ctx.fillStyle = 'rgba(244,215,126,0.9)'
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
         ctx.fill()
       }
-
-      if (!reduce) raf = requestAnimationFrame(draw)
     }
 
-    build()
-    draw()
+    const loop = () => {
+      if (running) draw()
+      raf = requestAnimationFrame(loop)
+    }
 
-    const onResize = () => { build(); if (reduce) draw() }
+    resize(true)
+    if (reduce) draw()
+    else loop()
+
+    let rt
+    const onResize = () => {
+      clearTimeout(rt)
+      rt = setTimeout(() => { resize(false); if (reduce) draw() }, 160)
+    }
     const onMove = (e) => {
       const rect = canvas.getBoundingClientRect()
       mouse.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
     }
-    const onLeave = () => { mouse.current = { x: -9999, y: -9999 } }
+
+    // Pause the loop when the hero scrolls out of view (saves battery on mobile).
+    const io = new IntersectionObserver(([entry]) => { running = entry.isIntersecting }, { threshold: 0 })
+    io.observe(canvas)
 
     window.addEventListener('resize', onResize)
-    canvas.addEventListener('mousemove', onMove)
-    canvas.addEventListener('mouseleave', onLeave)
+    if (!isMobile) window.addEventListener('mousemove', onMove)
     return () => {
       cancelAnimationFrame(raf)
+      clearTimeout(rt)
+      io.disconnect()
       window.removeEventListener('resize', onResize)
-      canvas.removeEventListener('mousemove', onMove)
-      canvas.removeEventListener('mouseleave', onLeave)
+      window.removeEventListener('mousemove', onMove)
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
+  return <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
 }
 
 function Hero() {
@@ -298,36 +326,36 @@ function Hero() {
           <Eyebrow className="justify-center">Web design studio · for every business</Eyebrow>
         </div>
 
-        <h1 className="hero-rev mt-7 font-display text-5xl font-extrabold leading-[1.02] tracking-tight text-balance sm:text-6xl md:text-7xl">
+        <h1 className="hero-rev mt-7 font-display text-[2.6rem] font-extrabold leading-[1.06] tracking-tight text-balance sm:text-6xl sm:leading-[1.02] md:text-7xl">
           We build websites
           <br className="hidden sm:block" /> that reach the{' '}
           <span className="gold-shimmer italic font-serif">apex</span>.
         </h1>
 
-        <p className="hero-rev mx-auto mt-7 max-w-xl text-pretty text-base leading-relaxed text-muted sm:text-lg">
+        <p className="hero-rev mx-auto mt-6 max-w-xl text-pretty text-[15px] leading-relaxed text-muted sm:mt-7 sm:text-lg">
           Fully custom, beautiful, conversion-built websites for businesses of every kind — Shopify, custom
           design, anything. Just <span className="text-ink font-medium">$100</span>, live in under a day, with your
           own custom domain and <span className="text-ink font-medium">lifetime support &amp; edits</span> included.
         </p>
 
-        <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
+        <div className="mt-9 flex w-full max-w-sm flex-col items-stretch gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center">
           <a
             href={DISCORD}
             target="_blank"
             rel="noopener noreferrer"
-            className="hero-cta magnetic-btn flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-background"
+            className="hero-cta magnetic-btn flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-semibold text-background sm:py-3.5"
           >
             <DiscordIcon size={16} /> Order on Discord — $100
           </a>
           <a
             href="#work"
-            className="hero-cta lift-on-hover flex items-center gap-2 rounded-full gold-border px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
+            className="hero-cta lift-on-hover flex items-center justify-center gap-2 rounded-full gold-border px-7 py-4 text-sm font-semibold text-ink transition-colors hover:bg-surface sm:py-3.5"
           >
             See what we build
           </a>
         </div>
 
-        <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted sm:mt-14 sm:gap-x-8">
           <span className="hero-stat inline-flex items-center gap-2">
             <span className="flex">
               {[...Array(5)].map((_, i) => (
@@ -508,7 +536,7 @@ function Features() {
   ]
 
   return (
-    <section ref={root} className="relative mx-auto max-w-6xl px-5 py-24">
+    <section ref={root} className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
       <div className="max-w-2xl">
         <Eyebrow>Why Apex</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -627,7 +655,7 @@ function Process() {
   }, [])
 
   return (
-    <section id="process" ref={root} className="mx-auto max-w-4xl px-5 py-24">
+    <section id="process" ref={root} className="mx-auto max-w-4xl px-5 py-16 sm:py-24">
       <div className="mb-14 text-center">
         <Eyebrow className="justify-center">How we work</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -658,48 +686,87 @@ function Process() {
 /*  Interactive 3D — integrated Spline component                       */
 /* ------------------------------------------------------------------ */
 
-function Interactive3D() {
+/* Lightweight CSS fallback shown instead of the heavy 3D scene on phones */
+function OrbitFallback() {
   return (
-    <section id="work" className="mx-auto max-w-6xl px-5 py-24">
-      <div className="mb-10 max-w-2xl">
+    <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
+      <div className="absolute h-36 w-36 rounded-full bg-primary/20 blur-2xl" />
+      <div className="absolute h-40 w-40 rounded-full border border-primary/25 animate-spin-slow" />
+      <div
+        className="absolute h-60 w-60 rounded-full border border-dashed border-primary/15"
+        style={{ animation: 'spin 26s linear infinite reverse' }}
+      />
+      <svg viewBox="0 0 100 100" className="relative h-20 w-20 animate-float" fill="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="orbitg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#F4D77E" />
+            <stop offset="1" stopColor="#A67C1A" />
+          </linearGradient>
+        </defs>
+        <path d="M50 16 L82 82 H64 L50 48 L36 82 H18 Z" fill="url(#orbitg)" />
+      </svg>
+      <span className="absolute left-10 top-12 h-1.5 w-1.5 rounded-full bg-primary/70 animate-float" />
+      <span className="absolute bottom-14 right-12 h-1 w-1 rounded-full bg-primary-light/70 animate-pulse-slow" />
+    </div>
+  )
+}
+
+function Interactive3D() {
+  // The Spline robot is a ~2MB WebGL scene — only load it on tablet/desktop.
+  const [show3D, setShow3D] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)')
+    const update = () => setShow3D(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  return (
+    <section id="work" className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+      <div className="mb-8 max-w-2xl sm:mb-10">
         <Eyebrow>Built to feel alive</Eyebrow>
-        <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
+        <h2 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-5xl text-balance">
           We don’t just build pages. We build experiences.
         </h2>
         <p className="mt-4 text-muted">
-          Interactive 3D, motion, and micro-interactions that make visitors stop scrolling — drag the scene to explore.
+          Interactive 3D, motion, and micro-interactions that make visitors stop scrolling and remember your brand.
         </p>
       </div>
 
-      <Card className="relative h-[460px] w-full overflow-hidden border-divider bg-black/[0.96] sm:h-[520px]">
+      <Card className="relative w-full overflow-hidden border-divider bg-black/[0.96] md:h-[520px]">
         <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="#D4AF37" />
         <div className="flex h-full flex-col md:flex-row">
-          {/* Left copy */}
-          <div className="relative z-10 flex flex-1 flex-col justify-center p-8 sm:p-10">
-            <h3 className="bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text font-display text-3xl font-bold text-transparent sm:text-4xl">
+          {/* Copy */}
+          <div className="relative z-10 flex flex-1 flex-col justify-center p-7 sm:p-10">
+            <h3 className="bg-gradient-to-b from-neutral-50 to-neutral-400 bg-clip-text font-display text-2xl font-bold text-transparent sm:text-4xl">
               Interactive by design
             </h3>
-            <p className="mt-4 max-w-md text-neutral-300">
+            <p className="mt-4 max-w-md text-[15px] text-neutral-300 sm:text-base">
               Immersive 3D scenes, scroll-driven storytelling, and tactile motion — the kind of detail that turns a
               first-time visitor into a customer who remembers your brand.
             </p>
-            <div className="mt-7 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-2 sm:mt-7">
               {['3D & WebGL', 'Scroll motion', 'Micro-interactions'].map((t) => (
                 <span key={t} className="rounded-full border border-primary/25 px-3 py-1.5 font-mono text-[11px] tracking-wider text-primary">
                   {t}
                 </span>
               ))}
             </div>
-            <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="mt-8 inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary hover:gap-3 transition-all">
+            <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary transition-all hover:gap-3 sm:mt-8">
               <DiscordIcon size={15} /> Bring my brand to life
             </a>
           </div>
-          {/* Right 3D scene */}
-          <div className="relative flex-1">
-            <SplineScene
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="h-full w-full"
-            />
+          {/* 3D scene (desktop) or fallback (mobile) */}
+          <div className="relative h-64 w-full md:h-full md:flex-1">
+            {show3D ? (
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="h-full w-full"
+              />
+            ) : (
+              <OrbitFallback />
+            )}
           </div>
         </div>
       </Card>
@@ -734,7 +801,7 @@ function Services() {
 
   return (
     <section id="services" ref={root} className="border-y border-divider bg-deep">
-      <div className="mx-auto max-w-6xl px-5 py-24">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
         <div className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
             <Eyebrow>What we do</Eyebrow>
@@ -781,7 +848,7 @@ function Pricing() {
     'Lifetime support & free edits, forever',
   ]
   return (
-    <section id="pricing" className="mx-auto max-w-6xl px-5 py-24">
+    <section id="pricing" className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
       <div className="mb-14 text-center">
         <Eyebrow className="justify-center">One simple price</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -850,7 +917,7 @@ function Testimonials() {
   }, [])
   return (
     <section ref={root} className="border-y border-divider bg-deep">
-      <div className="mx-auto max-w-6xl px-5 py-24">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
         <div className="mb-12 text-center">
           <Eyebrow className="justify-center">Loved by business owners</Eyebrow>
           <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -889,7 +956,7 @@ function Contact() {
   ]
 
   return (
-    <section id="contact" className="relative mx-auto max-w-6xl px-5 py-24">
+    <section id="contact" className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
       <div className="relative overflow-hidden rounded-4xl border border-divider bg-surface">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/15 blur-[120px]" />
         <div className="relative grid-bg p-9 text-center sm:p-14">
