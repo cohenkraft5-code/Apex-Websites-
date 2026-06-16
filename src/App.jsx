@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
-  Menu, X, ArrowRight, Check, Star, Zap, Gauge,
-  PenTool, ShoppingCart, Search, Sparkles, Infinity as InfinityIcon, MousePointer2,
-  Layers, Rocket, Quote, Globe, Ticket, MessagesSquare, Instagram, ChevronRight,
+  Menu, X, Check, Star, Zap, Gauge,
+  PenTool, UtensilsCrossed, CalendarCheck, MapPin, Sparkles, Infinity as InfinityIcon, MousePointer2,
+  Layers, Rocket, Quote, Globe, MessageCircle, ChevronRight,
 } from 'lucide-react'
 import { SplineScene } from '@/components/ui/spline'
 import { Card } from '@/components/ui/card'
@@ -16,15 +16,32 @@ gsap.registerPlugin(ScrollTrigger)
 ScrollTrigger.config({ ignoreMobileResize: true })
 
 const GOLD = '#D4AF37'
-const DISCORD = 'https://discord.gg/Gn2r4BGcyB'
 const INSTAGRAM = 'https://www.instagram.com/apexwebsites0/'
+const HANDLE = '@apexwebsites0'
 
-/* Discord brand glyph */
-function DiscordIcon({ size = 18, className = '' }) {
+/* Instagram brand glyph — supplied artwork, recoloured via currentColor */
+function InstagramIcon({ size = 18, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M18.59 5.88997C17.36 5.31997 16.05 4.89997 14.67 4.65997C14.5 4.95997 14.3 5.36997 14.17 5.69997C12.71 5.47997 11.26 5.47997 9.83001 5.69997C9.69001 5.36997 9.49001 4.95997 9.32001 4.65997C7.94001 4.89997 6.63001 5.31997 5.40001 5.88997C2.92001 9.62997 2.25001 13.28 2.58001 16.87C4.23001 18.1 5.82001 18.84 7.39001 19.33C7.78001 18.8 8.12001 18.23 8.42001 17.64C7.85001 17.43 7.31001 17.16 6.80001 16.85C6.94001 16.75 7.07001 16.64 7.20001 16.54C10.33 18 13.72 18 16.81 16.54C16.94 16.65 17.07 16.75 17.21 16.85C16.7 17.16 16.15 17.42 15.59 17.64C15.89 18.23 16.23 18.8 16.62 19.33C18.19 18.84 19.79 18.1 21.43 16.87C21.82 12.7 20.76 9.08997 18.61 5.88997H18.59ZM8.84001 14.67C7.90001 14.67 7.13001 13.8 7.13001 12.73C7.13001 11.66 7.88001 10.79 8.84001 10.79C9.80001 10.79 10.56 11.66 10.55 12.73C10.55 13.79 9.80001 14.67 8.84001 14.67ZM15.15 14.67C14.21 14.67 13.44 13.8 13.44 12.73C13.44 11.66 14.19 10.79 15.15 10.79C16.11 10.79 16.87 11.66 16.86 12.73C16.86 13.79 16.11 14.67 15.15 14.67Z" />
+      <path fillRule="evenodd" clipRule="evenodd" d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" />
+      <path d="M18 5C17.4477 5 17 5.44772 17 6C17 6.55228 17.4477 7 18 7C18.5523 7 19 6.55228 19 6C19 5.44772 18.5523 5 18 5Z" />
+      <path fillRule="evenodd" clipRule="evenodd" d="M1.65396 4.27606C1 5.55953 1 7.23969 1 10.6V13.4C1 16.7603 1 18.4405 1.65396 19.7239C2.2292 20.8529 3.14708 21.7708 4.27606 22.346C5.55953 23 7.23969 23 10.6 23H13.4C16.7603 23 18.4405 23 19.7239 22.346C20.8529 21.7708 21.7708 20.8529 22.346 19.7239C23 18.4405 23 16.7603 23 13.4V10.6C23 7.23969 23 5.55953 22.346 4.27606C21.7708 3.14708 20.8529 2.2292 19.7239 1.65396C18.4405 1 16.7603 1 13.4 1H10.6C7.23969 1 5.55953 1 4.27606 1.65396C3.14708 2.2292 2.2292 3.14708 1.65396 4.27606ZM13.4 3H10.6C8.88684 3 7.72225 3.00156 6.82208 3.0751C5.94524 3.14674 5.49684 3.27659 5.18404 3.43597C4.43139 3.81947 3.81947 4.43139 3.43597 5.18404C3.27659 5.49684 3.14674 5.94524 3.0751 6.82208C3.00156 7.72225 3 8.88684 3 10.6V13.4C3 15.1132 3.00156 16.2777 3.0751 17.1779C3.14674 18.0548 3.27659 18.5032 3.43597 18.816C3.81947 19.5686 4.43139 20.1805 5.18404 20.564C5.49684 20.7234 5.94524 20.8533 6.82208 20.9249C7.72225 20.9984 8.88684 21 10.6 21H13.4C15.1132 21 16.2777 20.9984 17.1779 20.9249C18.0548 20.8533 18.5032 20.7234 18.816 20.564C19.5686 20.1805 20.1805 19.5686 20.564 18.816C20.7234 18.5032 20.8533 18.0548 20.9249 17.1779C20.9984 16.2777 21 15.1132 21 13.4V10.6C21 8.88684 20.9984 7.72225 20.9249 6.82208C20.8533 5.94524 20.7234 5.49684 20.564 5.18404C20.1805 4.43139 19.5686 3.81947 18.816 3.43597C18.5032 3.27659 18.0548 3.14674 17.1779 3.0751C16.2777 3.00156 15.1132 3 13.4 3Z" />
     </svg>
+  )
+}
+
+/* The single most-used button: order/message via Instagram */
+function IgButton({ children, size = 'lg', className = '', icon = 14 }) {
+  const pad = size === 'lg' ? 'px-7 py-4 text-sm sm:py-3.5' : 'px-5 py-2.5 text-sm'
+  return (
+    <a
+      href={INSTAGRAM}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`magnetic-btn ig-gradient ig-glow flex items-center justify-center gap-2 rounded-full font-semibold text-white ${pad} ${className}`}
+    >
+      <InstagramIcon size={icon} /> {children}
+    </a>
   )
 }
 
@@ -96,14 +113,7 @@ function Navbar() {
             ))}
           </div>
           <div className="hidden items-center gap-3 md:flex">
-            <a
-              href={DISCORD}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="magnetic-btn flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-background"
-            >
-              <DiscordIcon size={15} /> Order on Discord
-            </a>
+            <IgButton size="sm" icon={15}>Order on Instagram</IgButton>
           </div>
           <button
             onClick={() => setOpen(true)}
@@ -142,15 +152,9 @@ function Navbar() {
               {l.label}
             </a>
           ))}
-          <a
-            href={DISCORD}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-            className="mt-6 flex items-center justify-center gap-2 rounded-full bg-primary py-4 font-semibold text-background"
-          >
-            <DiscordIcon size={18} /> Order on Discord
-          </a>
+          <div className="mt-6" onClick={() => setOpen(false)}>
+            <IgButton icon={18}>Order on Instagram</IgButton>
+          </div>
         </div>
       </div>
     </>
@@ -323,30 +327,25 @@ function Hero() {
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-5xl flex-col items-center justify-center px-5 pt-28 pb-20 text-center">
         <div className="hero-rev">
-          <Eyebrow className="justify-center">Web design studio · for every business</Eyebrow>
+          <Eyebrow className="justify-center">Web design studio · for restaurants &amp; local business</Eyebrow>
         </div>
 
         <h1 className="hero-rev mt-7 font-display text-[2.6rem] font-extrabold leading-[1.06] tracking-tight text-balance sm:text-6xl sm:leading-[1.02] md:text-7xl">
-          We build websites
-          <br className="hidden sm:block" /> that reach the{' '}
+          Websites that fill
+          <br className="hidden sm:block" /> tables &amp; reach the{' '}
           <span className="gold-shimmer italic font-serif">apex</span>.
         </h1>
 
         <p className="hero-rev mx-auto mt-6 max-w-xl text-pretty text-[15px] leading-relaxed text-muted sm:mt-7 sm:text-lg">
-          Fully custom, beautiful, conversion-built websites for businesses of every kind — Shopify, custom
-          design, anything. Just <span className="text-ink font-medium">$100</span>, live in under a day, with your
-          own custom domain and <span className="text-ink font-medium">lifetime support &amp; edits</span> included.
+          Beautiful, conversion-built websites for restaurants, cafés, salons and local businesses — menus,
+          bookings and the works. Just <span className="text-ink font-medium">$100</span>, live in under a day, with
+          your own custom domain and <span className="text-ink font-medium">lifetime support &amp; edits</span> included.
         </p>
 
         <div className="mt-9 flex w-full max-w-sm flex-col items-stretch gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center">
-          <a
-            href={DISCORD}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hero-cta magnetic-btn flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-semibold text-background sm:py-3.5"
-          >
-            <DiscordIcon size={16} /> Order on Discord — $100
-          </a>
+          <div className="hero-cta">
+            <IgButton icon={16}>Order on Instagram — $100</IgButton>
+          </div>
           <a
             href="#work"
             className="hero-cta lift-on-hover flex items-center justify-center gap-2 rounded-full gold-border px-7 py-4 text-sm font-semibold text-ink transition-colors hover:bg-surface sm:py-3.5"
@@ -364,7 +363,7 @@ function Hero() {
             </span>
             4.9 average rating
           </span>
-          <span className="hero-stat inline-flex items-center gap-2"><Check size={14} className="text-primary" /> 240+ sites launched</span>
+          <span className="hero-stat inline-flex items-center gap-2"><Check size={14} className="text-primary" /> 240+ local businesses online</span>
           <span className="hero-stat inline-flex items-center gap-2"><Zap size={14} className="text-primary" /> Live in under 24 hours</span>
           <span className="hero-stat inline-flex items-center gap-2"><InfinityIcon size={14} className="text-primary" /> Lifetime support</span>
         </div>
@@ -379,8 +378,8 @@ function Hero() {
 
 function Marquee() {
   const items = [
-    'FULLY CUSTOM', 'SHOPIFY', 'JUST $100', 'CUSTOM DOMAIN', 'SEO',
-    'LIFETIME SUPPORT', 'LIVE IN UNDER A DAY', 'FREE EDITS', 'CONVERSION UX', 'CORE WEB VITALS',
+    'FULLY CUSTOM', 'ONLINE MENUS', 'RESERVATIONS', 'JUST $100', 'CUSTOM DOMAIN', 'LOCAL SEO',
+    'LIFETIME SUPPORT', 'LIVE IN UNDER A DAY', 'FREE EDITS', 'GOOGLE-READY',
   ]
   const row = [...items, ...items]
   return (
@@ -410,9 +409,9 @@ function ShuffleCard() {
     return () => clearInterval(id)
   }, [])
   const shots = [
-    { tag: 'Landing page', bar: 'w-3/4' },
-    { tag: 'Storefront', bar: 'w-1/2' },
-    { tag: 'Dashboard', bar: 'w-2/3' },
+    { tag: 'Restaurant site', bar: 'w-3/4' },
+    { tag: 'Online menu', bar: 'w-1/2' },
+    { tag: 'Bookings', bar: 'w-2/3' },
   ]
   return (
     <div className="relative h-44 [perspective:1000px]">
@@ -530,9 +529,9 @@ function Features() {
   }, [])
 
   const cards = [
-    { Comp: ShuffleCard, icon: Layers, title: '100% custom design', body: 'No templates. Every site is built from scratch around your brand — clear hierarchy, persuasive copy, and zero clutter.' },
-    { Comp: CodeRainCard, icon: Gauge, title: 'Engineered for speed', body: 'Hand-tuned code and modern stacks ship 90+ Lighthouse scores. Fast sites rank higher and sell more.' },
-    { Comp: SchedulerCard, icon: Rocket, title: 'Live in under a day', body: 'Order on Discord and we get you online fast — most custom sites go live within 24 hours, domain and all.' },
+    { Comp: ShuffleCard, icon: Layers, title: '100% custom design', body: 'No templates. Every site is built from scratch around your venue — mouth-watering photos, clear menus, and zero clutter.' },
+    { Comp: CodeRainCard, icon: Gauge, title: 'Engineered for speed', body: 'Hand-tuned code and modern stacks ship 90+ Lighthouse scores. Fast sites rank higher on Google and get more bookings.' },
+    { Comp: SchedulerCard, icon: Rocket, title: 'Live in under a day', body: 'Send one DM on Instagram and we get you online fast — most custom sites go live within 24 hours, domain and all.' },
   ]
 
   return (
@@ -540,10 +539,10 @@ function Features() {
       <div className="max-w-2xl">
         <Eyebrow>Why Apex</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
-          A website should work as hard as you do.
+          A website should work as hard as your kitchen.
         </h2>
         <p className="mt-4 text-muted">
-          We blend strategy, design, and engineering into one tight team — so the result looks premium and performs even better.
+          We blend strategy, design, and engineering into one tight team — so the result looks premium and brings real customers through the door.
         </p>
       </div>
 
@@ -599,7 +598,7 @@ function CountUp({ to, suffix = '', decimals = 0 }) {
 
 function Pillars() {
   const stats = [
-    { to: 240, suffix: '+', label: 'Websites designed & shipped', sub: 'Across 30+ industries' },
+    { to: 240, suffix: '+', label: 'Websites designed & shipped', sub: 'Restaurants, cafés & local trades' },
     { to: 98, suffix: '', label: 'Average Lighthouse score', sub: 'Speed your customers feel' },
     { to: 24, suffix: 'h', label: 'Average time to launch', sub: 'Most sites live the same day' },
   ]
@@ -627,8 +626,8 @@ function Pillars() {
 function Process() {
   const root = useRef(null)
   const steps = [
-    { n: '01', title: 'Open a ticket on Discord', body: 'Join our Discord and open a ticket. Tell us about your business and what you need — it’s a flat $100, no surprises.', icon: Ticket },
-    { n: '02', title: 'We design & build it', body: 'We craft your fully custom site — Shopify, business site, anything — built fast and reviewed with you until it’s exactly right.', icon: PenTool },
+    { n: '01', title: 'Send us a DM on Instagram', body: `Message ${HANDLE} and tell us about your business and what you need — it’s a flat $100, no surprises.`, icon: InstagramIcon },
+    { n: '02', title: 'We design & build it', body: 'We craft your fully custom site — menu, ordering, bookings, anything — built fast and reviewed with you until it’s exactly right.', icon: PenTool },
     { n: '03', title: 'Launch + lifetime support', body: 'We set up your own custom domain, launch your site, and stick around forever with free edits and lifetime support.', icon: Rocket },
   ]
 
@@ -730,7 +729,7 @@ function Interactive3D() {
           We don’t just build pages. We build experiences.
         </h2>
         <p className="mt-4 text-muted">
-          Interactive 3D, motion, and micro-interactions that make visitors stop scrolling and remember your brand.
+          Interactive motion and micro-interactions that make hungry visitors stop scrolling — and remember your name when they’re deciding where to eat.
         </p>
       </div>
 
@@ -744,7 +743,7 @@ function Interactive3D() {
             </h3>
             <p className="mt-4 max-w-md text-[15px] text-neutral-300 sm:text-base">
               Immersive 3D scenes, scroll-driven storytelling, and tactile motion — the kind of detail that turns a
-              first-time visitor into a customer who remembers your brand.
+              first-time visitor into a regular who remembers your venue.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 sm:mt-7">
               {['3D & WebGL', 'Scroll motion', 'Micro-interactions'].map((t) => (
@@ -753,8 +752,8 @@ function Interactive3D() {
                 </span>
               ))}
             </div>
-            <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary transition-all hover:gap-3 sm:mt-8">
-              <DiscordIcon size={15} /> Bring my brand to life
+            <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary transition-all hover:gap-3 sm:mt-8">
+              <InstagramIcon size={15} /> Bring my brand to life
             </a>
           </div>
           {/* 3D scene (desktop) or fallback (mobile) */}
@@ -781,12 +780,12 @@ function Interactive3D() {
 function Services() {
   const root = useRef(null)
   const services = [
-    { icon: PenTool, title: '100% Custom Web Design', body: 'No templates, ever. Bespoke, conversion-focused websites built from a blank canvas around your brand.' },
-    { icon: ShoppingCart, title: 'Shopify & E-Commerce', body: 'High-converting online stores and custom Shopify builds made to sell, scale, and stay fast.' },
-    { icon: Globe, title: 'Custom Domain Included', body: 'We register and connect your own custom domain for you — set up and handled, no hassle.' },
-    { icon: Search, title: 'SEO & Performance', body: 'Technical SEO, Core Web Vitals, and analytics so the right customers actually find you.' },
-    { icon: Sparkles, title: 'Branding & Identity', body: 'Logos, colour systems, and visual identity that make your business look established and trusted.' },
-    { icon: InfinityIcon, title: 'Lifetime Support & Edits', body: 'Need a change down the road? Just open a ticket. Free edits and support for the life of your site.' },
+    { icon: PenTool, title: '100% Custom Web Design', body: 'No templates, ever. Bespoke, appetite-driving websites built from a blank canvas around your venue and brand.' },
+    { icon: UtensilsCrossed, title: 'Online Menus & Ordering', body: 'Beautiful digital menus and ordering that send hungry customers straight to checkout — or your kitchen.' },
+    { icon: CalendarCheck, title: 'Reservations & Bookings', body: 'Let guests reserve a table or book an appointment in seconds, right from their phone — no phone tag.' },
+    { icon: MapPin, title: 'Local SEO & Google', body: 'Show up when locals search “near me.” Google Business, maps, and reviews dialled in so they find you first.' },
+    { icon: Sparkles, title: 'Branding & Identity', body: 'Logos, colour systems, and visual identity that make your spot look established, trusted, and worth visiting.' },
+    { icon: InfinityIcon, title: 'Lifetime Support & Edits', body: 'New menu, new hours, new photos? Just send a DM. Free edits and support for the life of your site.' },
   ]
 
   useEffect(() => {
@@ -806,11 +805,11 @@ function Services() {
           <div className="max-w-xl">
             <Eyebrow>What we do</Eyebrow>
             <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
-              Everything your business needs to win online.
+              Everything your business needs to win locally.
             </h2>
           </div>
-          <a href={DISCORD} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all">
-            <DiscordIcon size={15} /> Order yours on Discord
+          <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all">
+            <InstagramIcon size={15} /> Order yours on Instagram
           </a>
         </div>
 
@@ -840,10 +839,10 @@ function Services() {
 function Pricing() {
   const features = [
     '100% custom design — no templates',
-    'Shopify, e-commerce, or business site',
+    'Online menu, ordering or bookings built in',
     'Your own custom domain, set up for you',
     'Mobile-first & lightning fast (90+ Lighthouse)',
-    'On-page SEO built in',
+    'Local SEO & Google Business ready',
     'Live in under 24 hours',
     'Lifetime support & free edits, forever',
   ]
@@ -862,7 +861,7 @@ function Pricing() {
       <div className="mx-auto max-w-md">
         <div className="relative flex flex-col rounded-4xl border border-primary/50 bg-surface p-9 gold-glow">
           <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 font-mono text-[10px] uppercase tracking-widest text-background">
-            Everything, for everyone
+            Everything, for every venue
           </span>
           <div className="text-center">
             <div className="font-mono text-xs uppercase tracking-widest text-primary">The Apex Site</div>
@@ -880,15 +879,10 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a
-            href={DISCORD}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="magnetic-btn mt-9 flex items-center justify-center gap-2 rounded-full bg-primary py-4 text-sm font-semibold text-background"
-          >
-            <DiscordIcon size={16} /> Order on Discord — $100
-          </a>
-          <p className="mt-3 text-center text-xs text-muted">Join, open a ticket, and we’ll get started.</p>
+          <div className="mt-9">
+            <IgButton icon={16}>Order on Instagram — $100</IgButton>
+          </div>
+          <p className="mt-3 text-center text-xs text-muted">DM us {HANDLE} and we’ll get started.</p>
         </div>
       </div>
     </section>
@@ -902,9 +896,9 @@ function Pricing() {
 function Testimonials() {
   const root = useRef(null)
   const quotes = [
-    { q: 'I opened a ticket at night and had a stunning custom site live the next day. For $100 it’s unreal — and they still do my edits for free.', name: 'Marcus Reed', role: 'Owner, Reed & Co. Builders' },
-    { q: 'They built our whole Shopify store and sorted the domain. Online orders are up 40% and it loads instantly.', name: 'Priya Shah', role: 'Founder, Saffron Kitchen' },
-    { q: 'Easiest process ever — joined the Discord, told them what I wanted, done. Lifetime support means I never worry about it.', name: 'Daniel Okafor', role: 'Director, NorthStar Dental' },
+    { q: 'I sent one DM at night and had a stunning custom site for my restaurant live the next day. For $100 it’s unreal — and they still do my edits for free.', name: 'Priya Shah', role: 'Owner, Saffron Kitchen' },
+    { q: 'Our café finally has online ordering that actually looks good. Pickup orders are up 40% and the site loads instantly.', name: 'Marco Bianchi', role: 'Owner, Crema Coffee House' },
+    { q: 'Booked solid since the new site went up. Easiest process ever — I just messaged them on Instagram, told them what I wanted, done.', name: 'Daniel Okafor', role: 'Director, NorthStar Dental' },
   ]
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -950,8 +944,8 @@ function Testimonials() {
 
 function Contact() {
   const steps = [
-    { icon: MessagesSquare, title: 'Join the Discord', body: 'Tap the button below to join the Apex Websites Discord server — it’s free and takes a few seconds.' },
-    { icon: Ticket, title: 'Open a ticket', body: 'Create a ticket and tell us about your business and what you need. Pay your $100 right there.' },
+    { icon: InstagramIcon, title: 'Send us a DM', body: `Tap the button below to open our Instagram and message ${HANDLE} — it’s free and takes a few seconds.` },
+    { icon: MessageCircle, title: 'Tell us what you need', body: 'Share your business and what you want. Pay your $100 right there in the chat — no forms, no calls.' },
     { icon: Rocket, title: 'We build & launch', body: 'We design your custom site, set up your domain, and get you live — usually within 24 hours.' },
   ]
 
@@ -959,16 +953,17 @@ function Contact() {
     <section id="contact" className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
       <div className="relative overflow-hidden rounded-4xl border border-divider bg-surface">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/15 blur-[120px]" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-[#D62976]/15 blur-[120px]" />
         <div className="relative grid-bg p-9 text-center sm:p-14">
           <div className="flex justify-center">
             <Eyebrow>Get started</Eyebrow>
           </div>
           <h2 className="mx-auto mt-5 max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
-            Everything happens on <span className="gradient-text">Discord.</span>
+            Everything happens on <span className="ig-text">Instagram.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-muted">
-            No forms, no back-and-forth emails. Join our Discord, open a ticket, and tell us what you need — your
-            custom site is just $100 with lifetime support.
+            No forms, no back-and-forth emails. DM us on Instagram, tell us what you need, and we’ll take it from there —
+            your custom site is just $100 with lifetime support.
           </p>
 
           {/* Steps */}
@@ -987,24 +982,23 @@ function Contact() {
 
           {/* Primary CTA */}
           <a
-            href={DISCORD}
+            href={INSTAGRAM}
             target="_blank"
             rel="noopener noreferrer"
-            className="magnetic-btn mx-auto mt-12 flex w-fit items-center gap-2.5 rounded-full bg-[#5865F2] px-8 py-4 text-base font-semibold text-white"
+            className="magnetic-btn ig-gradient ig-glow mx-auto mt-12 flex w-fit items-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-white"
           >
-            <DiscordIcon size={20} /> Join our Discord
+            <InstagramIcon size={20} /> Message us on Instagram
           </a>
 
-          {/* Instagram */}
           <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted">
-            <span>Or follow our work on</span>
+            <span>Or find us at</span>
             <a
               href={INSTAGRAM}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 font-medium text-ink transition-colors hover:text-primary"
             >
-              <Instagram size={16} /> @apexwebsites0
+              <InstagramIcon size={16} /> {HANDLE}
             </a>
           </div>
         </div>
@@ -1021,8 +1015,8 @@ function Footer() {
   const cols = [
     { title: 'What we do', links: [
       { l: 'Custom Web Design', href: '#services' },
-      { l: 'Shopify & E-Commerce', href: '#services' },
-      { l: 'SEO & Performance', href: '#services' },
+      { l: 'Online Menus & Ordering', href: '#services' },
+      { l: 'Local SEO & Google', href: '#services' },
       { l: 'Lifetime Support', href: '#services' },
     ] },
     { title: 'Explore', links: [
@@ -1042,7 +1036,7 @@ function Footer() {
           <div>
             <Logo />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-muted">
-              Fully custom web design for every business — just $100, your own domain, lifetime support. Everything starts on Discord.
+              Fully custom web design for restaurants, cafés &amp; local businesses — just $100, your own domain, lifetime support. Everything starts with a DM on Instagram.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-divider px-3 py-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-400 ring-pulse" />
@@ -1050,22 +1044,21 @@ function Footer() {
             </div>
             <div className="mt-5 flex items-center gap-3">
               <a
-                href={DISCORD}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Join our Discord"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-divider text-muted transition-colors hover:border-primary/40 hover:text-primary"
-              >
-                <DiscordIcon size={18} />
-              </a>
-              <a
                 href={INSTAGRAM}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow us on Instagram"
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-divider text-muted transition-colors hover:border-primary/40 hover:text-primary"
               >
-                <Instagram size={18} />
+                <InstagramIcon size={18} />
+              </a>
+              <a
+                href={INSTAGRAM}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-muted transition-colors hover:text-ink"
+              >
+                {HANDLE}
               </a>
             </div>
           </div>
@@ -1089,7 +1082,7 @@ function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-divider pt-7 sm:flex-row">
           <p className="text-xs text-muted">© {new Date().getFullYear()} Apex Websites. All rights reserved.</p>
-          <p className="font-mono text-[11px] tracking-wider text-muted">Designed & built in-house · Reach the apex.</p>
+          <p className="font-mono text-[11px] tracking-wider text-muted">Designed &amp; built in-house · Reach the apex.</p>
         </div>
       </div>
     </footer>
