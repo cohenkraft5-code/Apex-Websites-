@@ -5,7 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   Menu, X, Check, Star, Zap, Gauge,
   PenTool, UtensilsCrossed, CalendarCheck, MapPin, Sparkles, Infinity as InfinityIcon, MousePointer2,
-  Layers, Rocket, Quote, Globe, MessageCircle, ChevronRight,
+  Layers, Rocket, Quote, Globe, MessageCircle, ChevronRight, ArrowUpRight,
 } from 'lucide-react'
 import { SplineScene } from '@/components/ui/spline'
 import { Card } from '@/components/ui/card'
@@ -19,6 +19,57 @@ const GOLD = '#D4AF37'
 const INSTAGRAM = 'https://www.instagram.com/apexwebsites0/'
 const HANDLE = '@apexwebsites0'
 
+/* ------------------------------------------------------------------ */
+/*  Motion primitives — cursor magnetism + spotlight border tracking   */
+/* ------------------------------------------------------------------ */
+
+/* Pulls an element gently toward the cursor (real magnetic-button physics). */
+function useMagnetic(strength = 0.4) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (window.matchMedia('(hover: none)').matches) return // skip on touch
+    let raf = 0
+    const move = (e) => {
+      const r = el.getBoundingClientRect()
+      const x = (e.clientX - (r.left + r.width / 2)) * strength
+      const y = (e.clientY - (r.top + r.height / 2)) * strength
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => { el.style.transform = `translate(${x}px, ${y}px)` })
+    }
+    const reset = () => { cancelAnimationFrame(raf); el.style.transform = 'translate(0,0)' }
+    el.addEventListener('mousemove', move)
+    el.addEventListener('mouseleave', reset)
+    return () => { el.removeEventListener('mousemove', move); el.removeEventListener('mouseleave', reset); cancelAnimationFrame(raf) }
+  }, [strength])
+  return ref
+}
+
+/* Feeds the cursor position into --mx/--my so a .spot-card border can ignite. */
+function useSpotlight() {
+  const ref = useRef(null)
+  const onMove = (e) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`)
+    el.style.setProperty('--my', `${e.clientY - r.top}px`)
+  }
+  return { ref, onMove }
+}
+
+/* A card whose gold hairline lights up under the cursor. */
+function SpotlightCard({ as: Tag = 'div', className = '', children, ...rest }) {
+  const { ref, onMove } = useSpotlight()
+  return (
+    <Tag ref={ref} onMouseMove={onMove} className={`spot-card ${className}`} {...rest}>
+      {children}
+    </Tag>
+  )
+}
+
 /* Instagram brand glyph — supplied artwork, recoloured via currentColor */
 function InstagramIcon({ size = 18, className = '' }) {
   return (
@@ -30,17 +81,21 @@ function InstagramIcon({ size = 18, className = '' }) {
   )
 }
 
-/* The single most-used button: order/message via Instagram */
-function IgButton({ children, size = 'lg', className = '', icon = 14 }) {
-  const pad = size === 'lg' ? 'px-7 py-4 text-sm sm:py-3.5' : 'px-5 py-2.5 text-sm'
+/* The single most-used button: order/message via Instagram.
+   Cursor-magnetic, with a nested "button-in-button" trailing arrow. */
+function IgButton({ children, size = 'lg', className = '', icon = 14, arrow = true }) {
+  const pad = size === 'lg' ? 'pl-7 pr-3 py-2.5 text-sm' : 'pl-5 pr-2 py-2 text-sm'
+  const magRef = useMagnetic(0.35)
   return (
     <a
+      ref={magRef}
       href={INSTAGRAM}
       target="_blank"
       rel="noopener noreferrer"
-      className={`magnetic-btn ig-gradient ig-glow flex items-center justify-center gap-2 rounded-full font-semibold text-white ${pad} ${className}`}
+      className={`magnetic-btn ig-gradient ig-glow flex w-full items-center justify-center gap-3 rounded-full font-semibold text-white ${pad} ${className}`}
     >
-      <InstagramIcon size={icon} /> {children}
+      <span className="inline-flex items-center gap-2"><InstagramIcon size={icon} /> {children}</span>
+      {arrow && <span className="icon-pill"><ArrowUpRight size={15} strokeWidth={2.4} /></span>}
     </a>
   )
 }
@@ -51,8 +106,8 @@ function IgButton({ children, size = 'lg', className = '', icon = 14 }) {
 
 function Eyebrow({ children, className = '' }) {
   return (
-    <span className={`inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.28em] text-primary/90 ${className}`}>
-      <span className="h-px w-6 bg-primary/50" />
+    <span className={`inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.24em] text-primary/90 ${className}`}>
+      <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(212,175,55,0.9)]" />
       {children}
     </span>
   )
@@ -113,7 +168,7 @@ function Navbar() {
             ))}
           </div>
           <div className="hidden items-center gap-3 md:flex">
-            <IgButton size="sm" icon={15}>Order on Instagram</IgButton>
+            <IgButton size="sm" icon={15} arrow={false}>Order on Instagram</IgButton>
           </div>
           <button
             onClick={() => setOpen(true)}
@@ -298,9 +353,9 @@ function Hero() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-      tl.from('.hero-rev', { y: 28, opacity: 0, duration: 0.9, stagger: 0.12 })
-        .from('.hero-cta', { y: 18, opacity: 0, duration: 0.7, stagger: 0.1 }, '-=0.4')
-        .from('.hero-stat', { y: 14, opacity: 0, duration: 0.6, stagger: 0.08 }, '-=0.3')
+      tl.from('.hero-rev', { y: 34, autoAlpha: 0, filter: 'blur(10px)', duration: 1, stagger: 0.13 })
+        .from('.hero-cta', { y: 18, autoAlpha: 0, duration: 0.7, stagger: 0.1 }, '-=0.45')
+        .from('.hero-stat', { y: 14, autoAlpha: 0, duration: 0.6, stagger: 0.08 }, '-=0.3')
     }, root)
     return () => ctx.revert()
   }, [])
@@ -321,8 +376,10 @@ function Hero() {
       >
         <path d="M50 14 L84 84 H66 L50 46 L34 84 H16 Z" stroke={GOLD} strokeWidth="0.6" />
       </svg>
-      {/* gold spotlight glow top */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-primary/15 blur-[140px]" />
+      {/* aurora mesh — cinematic ambient depth */}
+      <div className="aurora aurora-drift -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 bg-primary/15" />
+      <div className="aurora aurora-drift left-[8%] top-[30%] h-[320px] w-[320px] bg-[#A67C1A]/20" style={{ animationDelay: '-7s' }} />
+      <div className="aurora aurora-drift right-[6%] top-[44%] h-[300px] w-[300px] bg-[#962FBF]/12" style={{ animationDelay: '-14s' }} />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent" />
 
       <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-5xl flex-col items-center justify-center px-5 pt-28 pb-20 text-center">
@@ -330,7 +387,7 @@ function Hero() {
           <Eyebrow className="justify-center">Web design studio · for restaurants &amp; local business</Eyebrow>
         </div>
 
-        <h1 className="hero-rev mt-7 font-display text-[2.6rem] font-extrabold leading-[1.06] tracking-tight text-balance sm:text-6xl sm:leading-[1.02] md:text-7xl">
+        <h1 className="hero-rev mt-8 font-display text-[2.85rem] font-extrabold leading-[1.04] tracking-[-0.02em] text-balance sm:text-[4.4rem] sm:leading-[0.98] md:text-[5.25rem]">
           Websites that fill
           <br className="hidden sm:block" /> tables &amp; reach the{' '}
           <span className="gold-shimmer italic font-serif">apex</span>.
@@ -348,9 +405,12 @@ function Hero() {
           </div>
           <a
             href="#work"
-            className="hero-cta lift-on-hover flex items-center justify-center gap-2 rounded-full gold-border px-7 py-4 text-sm font-semibold text-ink transition-colors hover:bg-surface sm:py-3.5"
+            className="hero-cta group flex items-center justify-center gap-3 rounded-full gold-border bg-white/[0.02] py-2.5 pl-7 pr-3 text-sm font-semibold text-ink transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-surface"
           >
             See what we build
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+              <ArrowUpRight size={15} strokeWidth={2.4} />
+            </span>
           </a>
         </div>
 
@@ -522,7 +582,7 @@ function Features() {
     const ctx = gsap.context(() => {
       gsap.from('.feat-card', {
         scrollTrigger: { trigger: root.current, start: 'top 75%' },
-        y: 40, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'power3.out',
+        y: 48, autoAlpha: 0, filter: 'blur(8px)', duration: 0.9, stagger: 0.15, ease: 'power3.out',
       })
     }, root)
     return () => ctx.revert()
@@ -535,7 +595,7 @@ function Features() {
   ]
 
   return (
-    <section ref={root} className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
+    <section ref={root} className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
       <div className="max-w-2xl">
         <Eyebrow>Why Apex</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -546,16 +606,20 @@ function Features() {
         </p>
       </div>
 
-      <div className="mt-12 grid gap-5 md:grid-cols-3">
+      <div className="mt-12 grid gap-6 md:grid-cols-3">
         {cards.map(({ Comp, icon: Icon, title, body }) => (
-          <div key={title} className="feat-card lift-on-hover rounded-2xl border border-divider bg-surface p-5 transition-colors hover:border-primary/35">
-            <Comp />
-            <div className="mt-5 flex items-center gap-2">
-              <Icon size={18} className="text-primary" />
-              <h3 className="font-display text-lg font-semibold">{title}</h3>
+          <SpotlightCard key={title} className="feat-card bezel transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5">
+            <div className="bezel-core p-5">
+              <Comp />
+              <div className="mt-5 flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon size={17} />
+                </span>
+                <h3 className="font-display text-lg font-semibold">{title}</h3>
+              </div>
+              <p className="mt-2.5 text-sm leading-relaxed text-muted">{body}</p>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-          </div>
+          </SpotlightCard>
         ))}
       </div>
     </section>
@@ -654,7 +718,7 @@ function Process() {
   }, [])
 
   return (
-    <section id="process" ref={root} className="mx-auto max-w-4xl px-5 py-16 sm:py-24">
+    <section id="process" ref={root} className="mx-auto max-w-4xl px-5 py-20 sm:py-28">
       <div className="mb-14 text-center">
         <Eyebrow className="justify-center">How we work</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -664,17 +728,16 @@ function Process() {
 
       <div className="space-y-6">
         {steps.map(({ n, title, body, icon: Icon }) => (
-          <div
-            key={n}
-            className="proc-card sticky top-24 overflow-hidden rounded-3xl border border-divider bg-surface p-8 sm:p-10 gold-glow"
-          >
-            <div className="absolute right-6 top-6 font-display text-7xl font-extrabold text-primary/10">{n}</div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Icon size={22} />
+          <SpotlightCard key={n} className="proc-card bezel sticky top-24 gold-glow">
+            <div className="bezel-core p-8 sm:p-11">
+              <div className="absolute right-7 top-6 font-display text-8xl font-extrabold text-primary/[0.08]">{n}</div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+                <Icon size={22} />
+              </div>
+              <h3 className="mt-6 font-display text-2xl font-bold sm:text-3xl">{title}</h3>
+              <p className="mt-3 max-w-lg text-muted">{body}</p>
             </div>
-            <h3 className="mt-6 font-display text-2xl font-bold sm:text-3xl">{title}</h3>
-            <p className="mt-3 max-w-lg text-muted">{body}</p>
-          </div>
+          </SpotlightCard>
         ))}
       </div>
     </section>
@@ -722,7 +785,7 @@ function Interactive3D() {
   }, [])
 
   return (
-    <section id="work" className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+    <section id="work" className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
       <div className="mb-8 max-w-2xl sm:mb-10">
         <Eyebrow>Built to feel alive</Eyebrow>
         <h2 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -792,7 +855,7 @@ function Services() {
     const ctx = gsap.context(() => {
       gsap.from('.svc-tile', {
         scrollTrigger: { trigger: root.current, start: 'top 72%' },
-        y: 30, opacity: 0, duration: 0.6, stagger: 0.08, ease: 'power2.out',
+        y: 34, autoAlpha: 0, filter: 'blur(6px)', duration: 0.6, stagger: 0.07, ease: 'power2.out',
       })
     }, root)
     return () => ctx.revert()
@@ -800,7 +863,7 @@ function Services() {
 
   return (
     <section id="services" ref={root} className="border-y border-divider bg-deep">
-      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
         <div className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
             <Eyebrow>What we do</Eyebrow>
@@ -815,16 +878,16 @@ function Services() {
 
         <div className="grid gap-px overflow-hidden rounded-2xl border border-divider bg-divider sm:grid-cols-2 lg:grid-cols-3">
           {services.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="svc-tile group cursor-pointer bg-background p-7 transition-colors duration-300 hover:bg-surface">
+            <SpotlightCard key={title} className="svc-tile group cursor-pointer bg-background p-7 transition-colors duration-500 hover:bg-surface">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-background">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:bg-primary group-hover:text-background group-hover:-translate-y-0.5">
                   <Icon size={20} />
                 </div>
-                <ChevronRight size={18} className="text-muted transition-all group-hover:translate-x-1 group-hover:text-primary" />
+                <ArrowUpRight size={18} className="text-muted transition-all duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary" />
               </div>
               <h3 className="mt-5 font-display text-lg font-semibold">{title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>
-            </div>
+            </SpotlightCard>
           ))}
         </div>
       </div>
@@ -847,7 +910,7 @@ function Pricing() {
     'Lifetime support & free edits, forever',
   ]
   return (
-    <section id="pricing" className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+    <section id="pricing" className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
       <div className="mb-14 text-center">
         <Eyebrow className="justify-center">One simple price</Eyebrow>
         <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -859,8 +922,8 @@ function Pricing() {
       </div>
 
       <div className="mx-auto max-w-md">
-        <div className="relative flex flex-col rounded-4xl border border-primary/50 bg-surface p-9 gold-glow">
-          <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 font-mono text-[10px] uppercase tracking-widest text-background">
+        <div className="conic-ring relative flex flex-col rounded-[2rem] bg-surface p-9 gold-glow ring-1 ring-primary/30">
+          <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-primary px-4 py-1 font-mono text-[10px] uppercase tracking-widest text-background shadow-[0_8px_24px_-6px_rgba(212,175,55,0.7)]">
             Everything, for every venue
           </span>
           <div className="text-center">
@@ -904,14 +967,14 @@ function Testimonials() {
     const ctx = gsap.context(() => {
       gsap.from('.tst-card', {
         scrollTrigger: { trigger: root.current, start: 'top 75%' },
-        y: 30, opacity: 0, duration: 0.6, stagger: 0.12, ease: 'power2.out',
+        y: 36, autoAlpha: 0, filter: 'blur(6px)', duration: 0.7, stagger: 0.12, ease: 'power2.out',
       })
     }, root)
     return () => ctx.revert()
   }, [])
   return (
     <section ref={root} className="border-y border-divider bg-deep">
-      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
         <div className="mb-12 text-center">
           <Eyebrow className="justify-center">Loved by business owners</Eyebrow>
           <h2 className="mt-5 font-display text-4xl font-bold tracking-tight sm:text-5xl text-balance">
@@ -920,7 +983,7 @@ function Testimonials() {
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {quotes.map((t) => (
-            <figure key={t.name} className="tst-card flex flex-col rounded-2xl border border-divider bg-surface p-7">
+            <SpotlightCard as="figure" key={t.name} className="tst-card flex flex-col rounded-2xl border border-divider bg-surface p-7 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1">
               <Quote size={26} className="text-primary/50" />
               <div className="mt-3 flex gap-0.5">
                 {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-primary text-primary" />)}
@@ -930,7 +993,7 @@ function Testimonials() {
                 <div className="font-display text-sm font-semibold">{t.name}</div>
                 <div className="text-xs text-muted">{t.role}</div>
               </figcaption>
-            </figure>
+            </SpotlightCard>
           ))}
         </div>
       </div>
@@ -943,6 +1006,7 @@ function Testimonials() {
 /* ------------------------------------------------------------------ */
 
 function Contact() {
+  const ctaRef = useMagnetic(0.3)
   const steps = [
     { icon: InstagramIcon, title: 'Send us a DM', body: `Tap the button below to open our Instagram and message ${HANDLE} — it’s free and takes a few seconds.` },
     { icon: MessageCircle, title: 'Tell us what you need', body: 'Share your business and what you want. Pay your $100 right there in the chat — no forms, no calls.' },
@@ -950,7 +1014,7 @@ function Contact() {
   ]
 
   return (
-    <section id="contact" className="relative mx-auto max-w-6xl px-5 py-16 sm:py-24">
+    <section id="contact" className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
       <div className="relative overflow-hidden rounded-4xl border border-divider bg-surface">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary/15 blur-[120px]" />
         <div className="pointer-events-none absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-[#D62976]/15 blur-[120px]" />
@@ -982,12 +1046,14 @@ function Contact() {
 
           {/* Primary CTA */}
           <a
+            ref={ctaRef}
             href={INSTAGRAM}
             target="_blank"
             rel="noopener noreferrer"
-            className="magnetic-btn ig-gradient ig-glow mx-auto mt-12 flex w-fit items-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold text-white"
+            className="magnetic-btn ig-gradient ig-glow mx-auto mt-12 inline-flex w-fit items-center gap-3 rounded-full py-3 pl-8 pr-3.5 text-base font-semibold text-white"
           >
-            <InstagramIcon size={20} /> Message us on Instagram
+            <span className="inline-flex items-center gap-2.5"><InstagramIcon size={20} /> Message us on Instagram</span>
+            <span className="icon-pill h-8 w-8"><ArrowUpRight size={17} strokeWidth={2.4} /></span>
           </a>
 
           <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted">
