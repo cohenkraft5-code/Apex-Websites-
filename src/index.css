@@ -5,175 +5,131 @@
 @layer base {
   html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   body { @apply bg-background text-ink font-body; overflow-x: hidden; }
-  ::selection { background-color: #D4AF37; color: #070707; }
-  ::-webkit-scrollbar { width: 10px; }
-  ::-webkit-scrollbar-track { background: #070707; }
-  ::-webkit-scrollbar-thumb { background: #4A3F1E; border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: #D4AF37; }
+  ::selection { background-color: #1B33E0; color: #F2EDE3; }
+  ::-webkit-scrollbar { width: 11px; }
+  ::-webkit-scrollbar-track { background: #ECE5D7; }
+  ::-webkit-scrollbar-thumb { background: #C7BDA8; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #1B33E0; }
 }
 
 @layer components {
-  .noise-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 1; opacity: 0.05; mix-blend-mode: soft-light;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .magnetic-btn { position: relative; overflow: hidden; transition: transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
-  .magnetic-btn:hover { transform: scale(1.03) translateY(-1px); }
-  .magnetic-btn:active { transform: scale(0.98); }
-  .magnetic-btn::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0));
-    transform: translateY(100%);
-    transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
-  }
-  .magnetic-btn:hover::before { transform: translateY(0); }
-  .lift-on-hover { transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94); }
-  .lift-on-hover:hover { transform: translateY(-1px); }
-
-  .gradient-text {
-    background: linear-gradient(135deg, #F4D77E 0%, #D4AF37 45%, #A67C1A 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .gold-shimmer {
-    background: linear-gradient(110deg, #A67C1A 0%, #F4D77E 25%, #FFF6D8 50%, #F4D77E 75%, #A67C1A 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    animation: shimmer 4s linear infinite;
+  /* paper grain — barely-there texture so the bone canvas feels real */
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.4; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  .glass {
-    background: rgba(14,14,16,0.62);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(212,175,55,0.20);
-    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.06), 0 20px 50px -24px rgba(0,0,0,0.7);
+  /* eyebrow label */
+  .label {
+    @apply inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-primary;
   }
-  .glass-dark {
-    background: rgba(3,3,3,0.78);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(212,175,55,0.12);
-  }
-  .gold-border { border: 1px solid rgba(212,175,55,0.28); }
-  .gold-glow { box-shadow: 0 0 40px -8px rgba(212,175,55,0.45); }
+  .label-dot { @apply h-1.5 w-1.5 rounded-full bg-primary; box-shadow: 0 0 0 4px rgba(27,51,224,0.12); }
 
-  /* ---- Double-bezel: machined "glass-in-aluminium-tray" enclosure ---- */
-  .bezel {
-    position: relative;
-    border-radius: 1.65rem;
-    padding: 6px;
-    background:
-      linear-gradient(180deg, rgba(212,175,55,0.14), rgba(212,175,55,0.02) 40%, rgba(0,0,0,0)) ,
-      rgba(255,255,255,0.015);
-    border: 1px solid rgba(212,175,55,0.12);
-    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.05);
-    transition: border-color .6s cubic-bezier(0.32,0.72,0,1);
-  }
-  .bezel-core {
-    position: relative;
-    border-radius: 1.25rem;
-    background: #0E0E10;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.02);
-    overflow: hidden;
-  }
-  .bezel:hover { border-color: rgba(212,175,55,0.4); }
-
-  /* ---- Spotlight card: gold border ignites under the cursor ---- */
-  .spot-card { position: relative; }
-  .spot-card::before {
-    content: ''; position: absolute; inset: 0; border-radius: inherit;
-    padding: 1px; pointer-events: none; opacity: 0;
-    background: radial-gradient(220px circle at var(--mx,50%) var(--my,50%), rgba(244,215,126,0.55), transparent 70%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    transition: opacity .5s ease;
-  }
-  .spot-card:hover::before { opacity: 1; }
-  .spot-card::after {
-    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
-    background: radial-gradient(360px circle at var(--mx,50%) var(--my,50%), rgba(212,175,55,0.10), transparent 60%);
-    transition: opacity .5s ease;
-  }
-  .spot-card:hover::after { opacity: 1; }
-
-  /* ---- Aurora mesh orbs — cinematic ambient background ---- */
-  .aurora { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
-  .aurora-drift { animation: drift 22s ease-in-out infinite; }
-  @keyframes drift {
-    0%,100% { transform: translate3d(0,0,0) scale(1); }
-    33%     { transform: translate3d(4%, -3%, 0) scale(1.08); }
-    66%     { transform: translate3d(-3%, 2%, 0) scale(0.96); }
-  }
-
-  /* ---- Conic shimmer ring for the hero badge / featured price ---- */
-  .conic-ring { position: relative; }
-  .conic-ring::before {
-    content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
-    background: conic-gradient(from 0deg, transparent 0deg, rgba(244,215,126,0.9) 60deg, transparent 140deg, transparent 360deg);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    animation: conic-spin 6s linear infinite; opacity: 0.7;
-  }
-  @keyframes conic-spin { to { transform: rotate(360deg); } }
-
-  /* button-in-button trailing icon circle */
-  .icon-pill {
-    display: inline-flex; align-items: center; justify-content: center;
-    height: 1.6rem; width: 1.6rem; border-radius: 9999px;
-    background: rgba(255,255,255,0.16);
-    transition: transform .5s cubic-bezier(0.32,0.72,0,1);
-  }
-  .magnetic-btn:hover .icon-pill { transform: translate(2px,-1px) scale(1.08); }
-
-  /* Instagram action language — the buying channel reads as Instagram */
-  .ig-gradient {
-    background: linear-gradient(110deg, #FEDA75 0%, #FA7E1E 22%, #D62976 52%, #962FBF 78%, #4F5BD5 100%);
-    background-size: 220% auto;
-    animation: shimmer 6s linear infinite;
-  }
-  .ig-glow { box-shadow: 0 14px 50px -14px rgba(214,41,118,0.65); }
-  .ig-text {
-    background: linear-gradient(110deg, #FA7E1E 0%, #D62976 50%, #962FBF 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .ig-ring { border: 1px solid rgba(214,41,118,0.35); }
-
-  .ring-pulse { box-shadow: 0 0 0 0 rgba(212,175,55,0.6); animation: ring-pulse 2s infinite; }
-  @keyframes ring-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(212,175,55,0.6); }
-    70%  { box-shadow: 0 0 0 14px rgba(212,175,55,0); }
-    100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
-  }
-
+  /* ruled hairlines — the structural grid that signals "designed" */
+  .rule { @apply border-divider; }
   .grid-bg {
     background-image:
-      linear-gradient(rgba(212,175,55,0.055) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(212,175,55,0.055) 1px, transparent 1px);
-    background-size: 46px 46px;
+      linear-gradient(rgba(23,21,15,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23,21,15,0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
   }
   .radial-fade {
-    -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, #000 40%, transparent 100%);
-    mask-image: radial-gradient(ellipse 60% 60% at 50% 40%, #000 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 38%, #000 45%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 38%, #000 45%, transparent 100%);
   }
 
-  .text-balance { text-wrap: balance; }
-  .scrollbar-hide::-webkit-scrollbar { display: none; }
-
-  /* Spline component fallback loader */
-  .loader {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: 3px solid rgba(212,175,55,0.25);
-    border-top-color: #D4AF37;
-    animation: spin 0.9s linear infinite;
+  /* primary button — solid cobalt, with a trailing pill arrow */
+  .btn {
+    @apply inline-flex items-center justify-center gap-3 rounded-full font-semibold transition-all duration-300;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-primary {
+    @apply btn bg-primary text-background;
+    box-shadow: 0 12px 30px -10px rgba(27,51,224,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 42px -12px rgba(27,51,224,0.7); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ghost {
+    @apply btn bg-transparent text-ink;
+    border: 1px solid rgba(23,21,15,0.22);
+  }
+  .btn-ghost:hover { border-color: rgba(23,21,15,0.5); background: rgba(23,21,15,0.03); }
+
+  .arrow-pill {
+    @apply inline-flex items-center justify-center rounded-full;
+    background: rgba(255,255,255,0.22);
+    transition: transform .45s cubic-bezier(0.32,0.72,0,1);
+  }
+  .btn:hover .arrow-pill { transform: translate(2px,-2px); }
+
+  /* magnetic wrapper */
+  .magnetic { transition: transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94); }
+
+  /* card — paper panel with hairline + soft press shadow */
+  .card {
+    @apply relative rounded-2.5xl bg-surface;
+    border: 1px solid rgba(23,21,15,0.10);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 14px 34px -22px rgba(23,21,15,0.4);
+    transition: transform .6s cubic-bezier(0.32,0.72,0,1), border-color .4s ease, box-shadow .4s ease;
+  }
+  .card:hover { border-color: rgba(27,51,224,0.4); }
+  .card-lift:hover { transform: translateY(-6px); box-shadow: 0 28px 50px -26px rgba(23,21,15,0.45); }
+
+  /* cursor spotlight — a cobalt wash that tracks the pointer */
+  .spot { position: relative; }
+  .spot::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+    background: radial-gradient(340px circle at var(--mx,50%) var(--my,50%), rgba(27,51,224,0.08), transparent 60%);
+    transition: opacity .5s ease;
+  }
+  .spot:hover::after { opacity: 1; }
+
+  /* cobalt gradient ink for emphasis words */
+  .text-cobalt {
+    background: linear-gradient(120deg, #1B33E0 0%, #5E73FF 60%, #1124A8 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+  }
+  /* animated shimmer used on the single hero emphasis word */
+  .text-shimmer {
+    background: linear-gradient(110deg, #1124A8 0%, #1B33E0 30%, #6E80FF 50%, #1B33E0 70%, #1124A8 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+
+  /* dark dramatic band (CTA / showcase) */
+  .band-night { @apply bg-night text-background; }
+  .band-night .text-muted { color: #A39C8B; }
+
+  /* glass nav once scrolled */
+  .glass {
+    background: rgba(242,237,227,0.72);
+    backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(23,21,15,0.08);
+    box-shadow: 0 10px 30px -18px rgba(23,21,15,0.35);
+  }
+
+  /* live status dot */
+  .ring-pulse { box-shadow: 0 0 0 0 rgba(27,51,224,0.5); animation: ring-pulse 2.4s infinite; }
+  @keyframes ring-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(27,51,224,0.5); }
+    70%  { box-shadow: 0 0 0 12px rgba(27,51,224,0); }
+    100% { box-shadow: 0 0 0 0 rgba(27,51,224,0); }
+  }
+
+  /* browser chrome for site mockups */
+  .browser {
+    @apply relative overflow-hidden rounded-xl bg-white;
+    border: 1px solid rgba(23,21,15,0.12);
+    box-shadow: 0 30px 60px -30px rgba(23,21,15,0.5);
+  }
 }
 
 @layer utilities {
-  .perspective { perspective: 1200px; }
-  .preserve-3d { transform-style: preserve-3d; }
-  .clip-wave { clip-path: polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%); }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
   .mask-fade-x {
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
   }
+  @keyframes spin { to { transform: rotate(360deg); } }
 }
